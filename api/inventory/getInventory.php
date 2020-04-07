@@ -5,24 +5,25 @@ header("Content-Type: application/json; charset=UTF-8");
 
 // include database and object files
 include_once '../config/database.php';
-include_once '../models/inventory.php';
+include_once '../models/item.php';
   
 // instantiate database and product object
 $database = new Database();
 $db = $database->getConnection();
   
 // initialize object
-$inventory = new Inventory($db);
+$item = new Item($db);
 
 // query inventory
-$stmt = $inventory->getInventory();
+$stmt = $item->getItems();
 $num = $stmt->rowCount();
   
 // check if more than 0 record found
 if($num>0){
   
     // inventory array
-    $inventory_arr=array();
+    $inventory_arr["items"]=array();
+    $inventory_arr["alerts"]=array();
   
     // retrieve our table contents
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
@@ -32,14 +33,21 @@ if($num>0){
         extract($row);
   
         $inventory_item=array(
-            "barcode" => $barcode,
+            "item_number" => $item_number,
             "item_name" => $item_name,
             "size" => $size,
-            "quantity" => $quantity,
-            "timestamp" => $timestamp
+            "quantity" => array(
+                "value" => $quantity,
+                "unit" => $unit),
+            "timestamp" => $timestamp,
+            "invoice_number" => $invoice_number,
+            "vendor" => $vendor,
+            "grade" => $grade,
+            "rate" => $rate,
+            "amount" => $amount
         );
   
-        array_push($inventory_arr, $inventory_item);
+        array_push($inventory_arr["items"], $inventory_item);
     }
   
     // set response code - 200 OK
@@ -57,3 +65,4 @@ if($num>0){
         array("message" => "No records found.")
     );
 }
+?>
