@@ -5,26 +5,24 @@ header("Content-Type: application/json; charset=UTF-8");
 
 // include database and object files
 include_once '../config/database.php';
-include_once '../models/inventory.php';
+include_once '../models/manufacture.php';
   
 // instantiate database and product object
 $database = new Database();
 $db = $database->getConnection();
   
 // initialize object
-$inventory = new Inventory($db);
+$item = new Manufacture($db);
 
-$item_id = $_GET['item_id'];
-
-// query inventory
-$stmt = $inventory->getInventory($item_id);
+// query manufacturing
+$stmt = $item->getManufacturingItems();
 $num = $stmt->rowCount();
   
 // check if more than 0 record found
 if($num>0){
   
-    // inventory array
-    $inventory_arr["inventory"]=array();
+    // manufacture array
+    $manufacture_arr["manufacture"]=array();
     $inventory_arr["alerts"]=array();
   
     // retrieve our table contents
@@ -34,8 +32,8 @@ if($num>0){
         // just $name only
         extract($row);
   
-        $inventory_item=array(
-            "inventory_id" => $inventory_id,
+        $manufacture_item=array(
+            "manufacture_id" => $manufacture_id,
             "item_id" => $item_id,
             "name" => $name,
             "size" => $size,
@@ -43,19 +41,18 @@ if($num>0){
             "quantity" => array(
                 "value" => $quantity,
                 "unit" => $unit),
-            "amount" => $amount,
             "timestamp" => $timestamp
             
         );
   
-        array_push($inventory_arr["inventory"], $inventory_item);
+        array_push($manufacture_arr["manufacture"], $manufacture_item);
     }
   
     // set response code - 200 OK
     http_response_code(200);
   
     // show invetory data in json format
-    echo json_encode($inventory_arr);
+    echo json_encode($manufacture_arr);
 } else{
   
     // set response code - 404 Not found

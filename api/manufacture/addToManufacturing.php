@@ -9,50 +9,36 @@ header("HTTP/1.1 200 OK");
   
 // include database and object files
 include_once '../config/database.php';
-include_once '../models/item.php';
+include_once '../models/manufacture.php';
   
 $database = new Database();
 $db = $database->getConnection();
 
 // initialize object
-$item = new Item($db);
+$item = new Manufacture($db);
   
 // get posted data
 $data = json_decode(file_get_contents("php://input"));
 
-$add_item_response["item_number"] = '';
+$add_item_response["manufacture_id"] = '';
 $add_item_response["alerts"] = array();
 
 // make sure data is not empty
 if(
-    !empty($data->item_name) &&
-    !empty($data->size) &&
+    !empty($data->item_id) &&
     !empty($data->quantity) &&
-    !empty($data->quantity->value) &&
-    !empty($data->quantity->unit) &&
-    !empty($data->timestamp) &&
-    !empty($data->invoice_number) &&
-    !empty($data->vendor) &&
-    !empty($data->grade) &&
-    !empty($data->rate) &&
-    !empty($data->amount)
+    !empty($data->timestamp)
 ){
     // set product property values
-    $item->item_name = $data->item_name;
-    $item->size = $data->size;
+    $item->item_id = $data->item_id;
     $item->quantity = $data->quantity->value;
     $item->unit = $data->quantity->unit;
     $item->timestamp = $data->timestamp;
-    $item->invoice_number = $data->invoice_number;
-    $item->vendor = $data->vendor;
-    $item->grade = $data->grade;
-    $item->rate = $data->rate;
-    $item->amount = $data->amount;
-  
+
     // create the product
-    $item_number = $item->addItem();
-    if($item_number){
-        $add_item_response["item_number"] = $item_number;
+    $manufacture_id = $item->addToManufacturing();
+    if($manufacture_id){
+        $add_item_response["manufacture_id"] = $manufacture_id;
         // set response code - 201 created
         http_response_code(201);
         // send response

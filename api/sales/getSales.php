@@ -33,11 +33,15 @@ if($num>0){
         extract($row);
   
         $sale_item=array(
-            "id" => $id,
-            "item_name" => $item_name,
-            "grade" => $grade,
-            "size" => $size,
-            "party_name" => $party_name,
+            "sale_id" => $sale_id,
+            "item" => array(
+                "id" => $item_id,
+                "name" => $item_name,
+                "grade" => $grade,
+                "size" => $size),
+            "customer" => array(
+                "id" => $customer_id,
+                "name" => $customer_name),
             "quantity" => array(
                 "value" => $quantity,
                 "unit" => $unit),
