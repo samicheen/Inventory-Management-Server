@@ -35,11 +35,11 @@ if($num>0){
         extract($row);
   
         $inventory_item=array(
-            "inventory_id" => $inventory_id,
-            "item_id" => $item_id,
-            "name" => $name,
-            "size" => $size,
-            "grade" => $grade,
+            "item" => array(
+                "item_id" => $item_id,
+                "name" => $name,
+                "size" => $size,
+                "grade" => $grade),
             "quantity" => array(
                 "value" => $quantity,
                 "unit" => $unit),
@@ -50,6 +50,8 @@ if($num>0){
   
         array_push($inventory_arr["inventory"], $inventory_item);
     }
+
+    $inventory_arr["total_amount"] = $inventory->getTotalAmount();
   
     // set response code - 200 OK
     http_response_code(200);

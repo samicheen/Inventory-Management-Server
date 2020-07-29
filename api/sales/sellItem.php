@@ -11,6 +11,7 @@ header("HTTP/1.1 200 OK");
 include_once '../config/database.php';
 include_once '../models/customer.php';
 include_once '../models/sale.php';
+include_once '../models/inventory.php';
   
 $database = new Database();
 $db = $database->getConnection();
@@ -18,6 +19,7 @@ $db = $database->getConnection();
 // initialize object
 $item = new Sale($db);
 $customer = new Customer($db);
+$inventory = new Inventory($db);
   
 // get posted data
 $data = json_decode(file_get_contents("php://input"));
@@ -33,8 +35,7 @@ if (!empty($data->item_id) &&
     !empty($data->quantity->value) &&
     !empty($data->quantity->unit) &&
     !empty($data->selling_price) &&
-    !empty($data->amount) &&
-    !empty($data->timestamp)) {
+    !empty($data->amount)) {
 
         // set customer values
         $customer->name = $data->customer->name;
@@ -48,11 +49,16 @@ if (!empty($data->item_id) &&
         $item->unit = $data->quantity->unit;
         $item->selling_price = $data->selling_price;
         $item->amount = $data->amount;
-        $item->timestamp = $data->timestamp;
+
+        // set inventory property values
+        $inventory->item_id = $data->item_id;
+        $inventory->quantity = $data->quantity->value;
     
         // create the product
         $sale_id = $item->sellItem();
-        if($sale_id) {
+        $inventory_updated = $inventory->updateInventory();
+
+        if($sale_id && $inventory_updated) {
             $sell_item_response["sale_id"] = $sale_id;
             // set response code - 201 created
             http_response_code(201);

@@ -52,6 +52,8 @@ if($num>0){
   
         array_push($sales_arr["sales"], $sale_item);
     }
+
+    $sales_arr["total_amount"] = $sale->getTotalAmount();
   
     // set response code - 200 OK
     http_response_code(200);

@@ -6,9 +6,10 @@ class Inventory {
     private $item_table = "item";
     private $map_table = "item_sub_item_map";
     private $inventory_table = "inventory";
+    private $purchase_table = "purchase";
   
     // object properties
-    public $inventory_id;
+    public $purchase_id;
     public $item_id;
     public $name;
     public $size;
@@ -16,6 +17,7 @@ class Inventory {
     public $quantity;
     public $unit;
     public $amount;
+    public $update_timestamp;
     public $timestamp;
   
     // constructor with $db as database connection
@@ -27,8 +29,7 @@ class Inventory {
     function getInventory($item_id) {
         // select all query
         $query = "SELECT
-                    inventory_id,
-                    " . $this->inventory_table . ".item_id as item_id,
+                    inv.item_id as item_id,
                     name,
                     size,
                     grade,
@@ -36,17 +37,22 @@ class Inventory {
                     unit,
                     amount,
                     timestamp
-                FROM
-                    " . $this->inventory_table .
-                    " INNER JOIN " . $this->item_table .
-                    " ON inventory.item_id = item.item_id
-                    INNER JOIN " . $this->map_table . " map";
+                FROM (SELECT item_id,
+                             SUM(quantity) quantity,
+                             unit,
+                             SUM(amount) amount,
+                             MAX(update_timestamp) timestamp 
+                      FROM ". $this->inventory_table . "
+                      GROUP BY item_id, unit) inv
+                INNER JOIN " . $this->item_table . " i
+                ON inv.item_id = i.item_id
+                INNER JOIN " . $this->map_table . " map";
 
         if(empty($item_id)) {
-         $query = $query." ON item.item_id = map.item_id WHERE map.sub_item_id is null";
+         $query = $query." ON i.item_id = map.item_id WHERE map.sub_item_id is null";
         } else {
          // for sub items
-         $query = $query." ON item.item_id = map.sub_item_id WHERE map.item_id=:item_id";
+         $query = $query." ON i.item_id = map.sub_item_id WHERE map.item_id=:item_id";
         }
 
         // prepare query statement
@@ -63,6 +69,16 @@ class Inventory {
         return $stmt;
     }
 
+    // Get total amount
+    function getTotalAmount() {
+        $total_query = "SELECT SUM(amount) total_amount
+                        FROM ". $this->inventory_table;
+        $total_stmt = $this->conn->prepare($total_query); 
+        $total_stmt->execute();
+        $total = $total_stmt->fetch();
+        return $total["total_amount"];
+    }
+
     // Add inventory
     function addInventory() {
          // query to insert record
@@ -72,12 +88,10 @@ class Inventory {
             item_id=:item_id,
             quantity=:quantity,
             unit=:unit,
+            rate=:rate,
             amount=:amount,
-            timestamp=:timestamp
-        ON DUPLICATE KEY UPDATE
-        inventory_id=LAST_INSERT_ID(inventory_id),
-        quantity=quantity+VALUES(quantity),
-        amount=amount+VALUES(amount)";
+            update_timestamp=sysdate(),
+            timestamp=sysdate()";
 
         // prepare query
         $stmt = $this->conn->prepare($query);
@@ -86,15 +100,15 @@ class Inventory {
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->unit = htmlspecialchars(strip_tags($this->unit));
+        $this->rate = htmlspecialchars(strip_tags($this->rate));
         $this->amount = htmlspecialchars(strip_tags($this->amount));
-        $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
         $stmt->bindParam(":item_id", $this->item_id);
         $stmt->bindParam(":quantity", $this->quantity);
         $stmt->bindParam(":unit", $this->unit);
+        $stmt->bindParam(":rate", $this->rate);
         $stmt->bindParam(":amount", $this->amount);
-        $stmt->bindParam(":timestamp", $this->timestamp);
 
         // execute query
         if($stmt->execute()) {
@@ -103,6 +117,43 @@ class Inventory {
         }
 
         return 0;
+    }
+
+    // Update inventory
+    function updateInventory(){
+        //query to update records
+        $query = "update " . $this->inventory_table . " i
+        inner join (
+            select 
+                i.*, 
+                sum(quantity) over(partition by item_id order by timestamp) sum_quantity
+            from " . $this->inventory_table . " i
+        ) n
+            on  n.item_id = i.item_id
+            and n.timestamp = i.timestamp
+            and n.sum_quantity - i.quantity < :quantity
+        set i.quantity = greatest(n.sum_quantity - :quantity, 0),
+        i.amount = greatest(n.sum_quantity - :quantity, 0) * i.rate,
+        i.update_timestamp = sysdate()
+        where i.item_id = :item_id";
+
+        // prepare query
+        $stmt = $this->conn->prepare($query);
+
+        // sanitize
+        $this->item_id = htmlspecialchars(strip_tags($this->item_id));
+        $this->quantity = htmlspecialchars(strip_tags($this->quantity));
+
+        // bind values
+        $stmt->bindParam(":item_id", $this->item_id);
+        $stmt->bindParam(":quantity", $this->quantity);
+
+        // execute query
+        if($stmt->execute()) {
+            return true;
+        }
+
+        return false;
     }
 }
 ?>

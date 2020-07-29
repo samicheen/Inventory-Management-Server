@@ -56,6 +56,16 @@ class Purchase {
         return $stmt;
     }
 
+    // Get total amount
+    function getTotalAmount() {
+        $total_query = "SELECT SUM(amount) total_amount
+                        FROM ". $this->purchase_table;
+        $total_stmt = $this->conn->prepare($total_query); 
+        $total_stmt->execute();
+        $total = $total_stmt->fetch();
+        return $total["total_amount"];
+    }
+
     // Add Purchase
     function addPurchase() {
          // query to insert record
@@ -69,7 +79,7 @@ class Purchase {
             unit=:unit,
             rate=:rate,
             amount=:amount,
-            timestamp=:timestamp";
+            timestamp=sysdate()";
 
         // prepare query
         $stmt = $this->conn->prepare($query);
@@ -82,7 +92,6 @@ class Purchase {
         $this->unit = htmlspecialchars(strip_tags($this->unit));
         $this->rate = htmlspecialchars(strip_tags($this->rate));
         $this->amount = htmlspecialchars(strip_tags($this->amount));
-        $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
         $stmt->bindParam(":invoice_id", $this->invoice_id);
@@ -92,7 +101,6 @@ class Purchase {
         $stmt->bindParam(":unit", $this->unit);
         $stmt->bindParam(":rate", $this->rate);
         $stmt->bindParam(":amount", $this->amount);
-        $stmt->bindParam(":timestamp", $this->timestamp);
 
         // execute query
         if($stmt->execute()) {
@@ -117,7 +125,7 @@ class Purchase {
                     unit=:unit,
                     rate=:rate,
                     amount=:amount,
-                    timestamp=:timestamp
+                    timestamp=sysdate()
                 WHERE
                     purchase_id = :purchase_id";
     
@@ -133,7 +141,6 @@ class Purchase {
         $this->unit = htmlspecialchars(strip_tags($this->unit));
         $this->rate = htmlspecialchars(strip_tags($this->rate));
         $this->amount = htmlspecialchars(strip_tags($this->amount));
-        $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
     
         // bind new values
         $stmt->bindParam(":purchase_id", $this->purchase_id);
@@ -144,7 +151,6 @@ class Purchase {
         $stmt->bindParam(":unit", $this->unit);
         $stmt->bindParam(":rate", $this->rate);
         $stmt->bindParam(":amount", $this->amount);
-        $stmt->bindParam(":timestamp", $this->timestamp);
     
         // execute the query
         if($stmt->execute()){

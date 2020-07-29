@@ -54,6 +54,16 @@ class Sale {
         return $stmt;
     }
 
+     // Get total amount
+     function getTotalAmount() {
+        $total_query = "SELECT SUM(amount) total_amount
+                        FROM ". $this->sales_table;
+        $total_stmt = $this->conn->prepare($total_query); 
+        $total_stmt->execute();
+        $total = $total_stmt->fetch();
+        return $total["total_amount"];
+    }
+
     // Sell Item
     function sellItem() {
         // query to insert record
@@ -66,7 +76,7 @@ class Sale {
            unit=:unit,
            selling_price=:selling_price,
            amount=:amount,
-           timestamp=:timestamp";
+           timestamp=sysdate()";
        // prepare query
        $stmt = $this->conn->prepare($query);
 
@@ -77,7 +87,6 @@ class Sale {
        $this->unit = htmlspecialchars(strip_tags($this->unit));
        $this->selling_price = htmlspecialchars(strip_tags($this->selling_price));
        $this->amount = htmlspecialchars(strip_tags($this->amount));
-       $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
        // bind values
        $stmt->bindParam(":item_id", $this->item_id);
@@ -86,7 +95,6 @@ class Sale {
        $stmt->bindParam(":unit", $this->unit);
        $stmt->bindParam(":selling_price", $this->selling_price);
        $stmt->bindParam(":amount", $this->amount);
-       $stmt->bindParam(":timestamp", $this->timestamp);
 
        // execute query
        if($stmt->execute()) {

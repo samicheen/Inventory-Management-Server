@@ -51,10 +51,12 @@ class Manufacture {
         SET item_id=:item_id, 
             quantity=:quantity,
             unit=:unit,
-            timestamp=:timestamp
+            timestamp=sysdate()
         ON DUPLICATE KEY UPDATE
         manufacture_id=LAST_INSERT_ID(manufacture_id),
-        quantity=quantity+VALUES(quantity)";
+        quantity=quantity+VALUES(quantity),
+        timestamp=VALUES(timestamp)"
+        ;
         // prepare query
         $stmt = $this->conn->prepare($query);
 
@@ -62,13 +64,11 @@ class Manufacture {
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->unit = htmlspecialchars(strip_tags($this->unit));
-        $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
         $stmt->bindParam(":item_id", $this->item_id);
         $stmt->bindParam(":quantity", $this->quantity);
         $stmt->bindParam(":unit", $this->unit);
-        $stmt->bindParam(":timestamp", $this->timestamp);
 
         // execute query
         if($stmt->execute()) {

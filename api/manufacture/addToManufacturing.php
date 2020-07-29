@@ -10,12 +10,14 @@ header("HTTP/1.1 200 OK");
 // include database and object files
 include_once '../config/database.php';
 include_once '../models/manufacture.php';
+include_once '../models/inventory.php';
   
 $database = new Database();
 $db = $database->getConnection();
 
 // initialize object
 $item = new Manufacture($db);
+$inventory = new Inventory($db);
   
 // get posted data
 $data = json_decode(file_get_contents("php://input"));
@@ -27,17 +29,22 @@ $add_item_response["alerts"] = array();
 if(
     !empty($data->item_id) &&
     !empty($data->quantity) &&
-    !empty($data->timestamp)
+    !empty($data->quantity->value) &&
+    !empty($data->quantity->unit)
 ){
     // set product property values
     $item->item_id = $data->item_id;
     $item->quantity = $data->quantity->value;
     $item->unit = $data->quantity->unit;
-    $item->timestamp = $data->timestamp;
+
+    $inventory->item_id = $data->item_id;
+    $inventory->quantity = $data->quantity->value;
+
+    $inventory_updated = $inventory->updateInventory();
 
     // create the product
     $manufacture_id = $item->addToManufacturing();
-    if($manufacture_id){
+    if($manufacture_id && $inventory_updated){
         $add_item_response["manufacture_id"] = $manufacture_id;
         // set response code - 201 created
         http_response_code(201);

@@ -51,6 +51,8 @@ if($num>0){
         );
         array_push($purchase_arr["purchases"], $purchase_item);
     }
+
+    $purchase_arr["total_amount"] = $purchase->getTotalAmount();
   
     // set response code - 200 OK
     http_response_code(200);

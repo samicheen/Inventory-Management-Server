@@ -10,11 +10,13 @@ header("HTTP/1.1 200 OK");
 // include database and object files
 include_once '../config/database.php';
 include_once '../models/inventory.php';
+include_once '../models/item.php';
   
 $database = new Database();
 $db = $database->getConnection();
 
 // initialize object
+$item = new Item($db);
 $inventory = new Inventory($db);
   
 // get posted data
@@ -29,15 +31,15 @@ if(
     !empty($data->quantity) &&
     !empty($data->quantity->value) &&
     !empty($data->quantity->unit) &&
-    !empty($data->amount) &&
-    !empty($data->timestamp)
+    !empty($data->rate) &&
+    !empty($data->amount)
 ){
     // set product property values
     $inventory->item_id = $data->item_id;
     $inventory->quantity = $data->quantity->value;
     $inventory->unit = $data->quantity->unit;
+    $inventory->rate = $data->rate;
     $inventory->amount = $data->amount;
-    $inventory->timestamp = $data->timestamp;
   
     // create the product
     $inventory_id = $inventory->addInventory();
