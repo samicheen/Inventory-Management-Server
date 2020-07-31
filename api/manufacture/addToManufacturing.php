@@ -27,17 +27,18 @@ $add_item_response["alerts"] = array();
 
 // make sure data is not empty
 if(
-    !empty($data->item_id) &&
+    !empty($data->item) &&
+    !empty($data->item->item_id) &&
     !empty($data->quantity) &&
     !empty($data->quantity->value) &&
     !empty($data->quantity->unit)
 ){
     // set product property values
-    $item->item_id = $data->item_id;
+    $item->item_id = $data->item->item_id;
     $item->quantity = $data->quantity->value;
     $item->unit = $data->quantity->unit;
 
-    $inventory->item_id = $data->item_id;
+    $inventory->item_id = $data->item->item_id;
     $inventory->quantity = $data->quantity->value;
 
     $inventory_updated = $inventory->updateInventory();

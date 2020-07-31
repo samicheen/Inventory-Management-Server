@@ -22,7 +22,7 @@ $num = $stmt->rowCount();
 if($num>0){
   
     // manufacture array
-    $manufacture_arr["manufacture"]=array();
+    $manufacture_arr["manufactures"]=array();
     $inventory_arr["alerts"]=array();
   
     // retrieve our table contents
@@ -34,10 +34,11 @@ if($num>0){
   
         $manufacture_item=array(
             "manufacture_id" => $manufacture_id,
-            "item_id" => $item_id,
-            "name" => $name,
-            "size" => $size,
-            "grade" => $grade,
+            "item" => array(
+                "item_id" => $item_id,
+                "name" => $name,
+                "size" => $size,
+                "grade" => $grade),
             "quantity" => array(
                 "value" => $quantity,
                 "unit" => $unit),
@@ -45,7 +46,7 @@ if($num>0){
             
         );
   
-        array_push($manufacture_arr["manufacture"], $manufacture_item);
+        array_push($manufacture_arr["manufactures"], $manufacture_item);
     }
   
     // set response code - 200 OK
