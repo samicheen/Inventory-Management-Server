@@ -30,7 +30,6 @@ $add_inventory_response["alerts"] = array();
 // make sure data is not empty
 if(
     !empty($data->item) &&
-    !empty($data->item->item_id) &&
     !empty($data->item->name) &&
     !empty($data->item->size) &&
     !empty($data->item->grade) &&
@@ -48,12 +47,17 @@ if(
 
     $sub_item_id = $item->addItem();
 
-    //set manufaturing values
-    $manufacture->item_id = $data->item->item_id;
-    $manufacture->quantity = $data->quantity->value * -1;
-    $manufacture->unit = $data->quantity->unit;
+    $manufacturingUpdated = 1;
 
-    $manufacturingUpdated = $manufacture->addToManufacturing();
+    // update manufacturing only if it is subitem
+    if (!empty($item->item_id)) {
+        //set manufaturing values
+        $manufacture->item_id = $data->item->item_id;
+        $manufacture->quantity = $data->quantity->value * -1;
+        $manufacture->unit = $data->quantity->unit;
+
+        $manufacturingUpdated = $manufacture->addToManufacturing();
+    }
 
     // set product property values
     $inventory->item_id = $sub_item_id;
