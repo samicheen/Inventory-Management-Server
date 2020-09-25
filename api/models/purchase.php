@@ -48,7 +48,8 @@ class Purchase {
                 " INNER JOIN " . $this->item_table .
                 " ON purchase.item_id = item.item_id
                 INNER JOIN " . $this->vendor_table .
-                " ON purchase.vendor_id = vendor.vendor_id";
+                " ON purchase.vendor_id = vendor.vendor_id
+                ORDER BY item_name, size, grade";
         // prepare query statement
         $stmt = $this->conn->prepare($query);
         // execute query
@@ -79,7 +80,7 @@ class Purchase {
             unit=:unit,
             rate=:rate,
             amount=:amount,
-            timestamp=sysdate()";
+            timestamp=:timestamp";
 
         // prepare query
         $stmt = $this->conn->prepare($query);
@@ -92,6 +93,7 @@ class Purchase {
         $this->unit = htmlspecialchars(strip_tags($this->unit));
         $this->rate = htmlspecialchars(strip_tags($this->rate));
         $this->amount = htmlspecialchars(strip_tags($this->amount));
+        $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
         $stmt->bindParam(":invoice_id", $this->invoice_id);
@@ -101,6 +103,7 @@ class Purchase {
         $stmt->bindParam(":unit", $this->unit);
         $stmt->bindParam(":rate", $this->rate);
         $stmt->bindParam(":amount", $this->amount);
+        $stmt->bindParam(":timestamp", $this->timestamp);
 
         // execute query
         if($stmt->execute()) {
@@ -125,7 +128,7 @@ class Purchase {
                     unit=:unit,
                     rate=:rate,
                     amount=:amount,
-                    timestamp=sysdate()
+                    timestamp=:timestamp
                 WHERE
                     purchase_id = :purchase_id";
     
@@ -141,6 +144,7 @@ class Purchase {
         $this->unit = htmlspecialchars(strip_tags($this->unit));
         $this->rate = htmlspecialchars(strip_tags($this->rate));
         $this->amount = htmlspecialchars(strip_tags($this->amount));
+        $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
     
         // bind new values
         $stmt->bindParam(":purchase_id", $this->purchase_id);
@@ -151,6 +155,7 @@ class Purchase {
         $stmt->bindParam(":unit", $this->unit);
         $stmt->bindParam(":rate", $this->rate);
         $stmt->bindParam(":amount", $this->amount);
+        $stmt->bindParam(":timestamp", $this->timestamp);
     
         // execute the query
         if($stmt->execute()){

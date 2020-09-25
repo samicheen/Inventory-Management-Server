@@ -5,25 +5,25 @@ header("Content-Type: application/json; charset=UTF-8");
 
 // include database and object files
 include_once '../config/database.php';
-include_once '../models/sale.php';
+include_once '../models/item.php';
   
 // instantiate database and product object
 $database = new Database();
 $db = $database->getConnection();
   
 // initialize object
-$sale = new Sale($db);
+$item = new Item($db);
 
-// query inventory
-$stmt = $sale->getSales();
+// query sub item
+$stmt = $item->getItems();
 $num = $stmt->rowCount();
   
 // check if more than 0 record found
 if($num>0){
   
-    // inventory array
-    $sales_arr["sales"]=array();
-    $sales_arr["alerts"]=array();
+    // sub item array
+    $item_arr["items"]=array();
+    $item_arr["alerts"]=array();
   
     // retrieve our table contents
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
@@ -32,34 +32,21 @@ if($num>0){
         // just $name only
         extract($row);
   
-        $sale_item=array(
-            "sale_id" => $sale_id,
-            "item" => array(
-                "id" => $item_id,
-                "name" => $item_name,
-                "grade" => $grade,
-                "size" => $size),
-            "customer" => array(
-                "id" => $customer_id,
-                "name" => $customer_name),
-            "quantity" => array(
-                "value" => $quantity,
-                "unit" => $unit),
-            "selling_price" => $selling_price,
-            "amount" => $amount,
-            "timestamp" => $timestamp . ' UTC'
+        $item=array(
+            "item_id" => $item_id,
+            "name" => $name,
+            "grade" => $grade,
+            "size" => $size,
         );
   
-        array_push($sales_arr["sales"], $sale_item);
+        array_push($item_arr["items"], $item);
     }
-
-    $sales_arr["total_amount"] = $sale->getTotalAmount();
   
     // set response code - 200 OK
     http_response_code(200);
   
     // show invetory data in json format
-    echo json_encode($sales_arr);
+    echo json_encode($item_arr);
 } else{
   
     // set response code - 404 Not found

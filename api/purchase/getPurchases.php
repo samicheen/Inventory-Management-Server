@@ -47,7 +47,7 @@ if($num>0){
                 "unit" => $unit),
             "rate" => $rate,
             "amount" => $amount,
-            "timestamp" => $timestamp
+            "timestamp" => $timestamp . ' UTC'
         );
         array_push($purchase_arr["purchases"], $purchase_item);
     }

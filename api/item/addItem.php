@@ -25,15 +25,14 @@ $add_item_response["alerts"] = array();
 
 // make sure data is not empty
 if(
-    !empty($data->name) &&
-    !empty($data->size) &&
-    !empty($data->grade)
+    !empty($data->item->name) &&
+    !empty($data->item->size) &&
+    !empty($data->item->grade)
 ){
     // set product property values
-    $item->item_id = $data->item_id;
-    $item->name = $data->name;
-    $item->size = $data->size;
-    $item->grade = $data->grade;
+    $item->name = $data->item->name;
+    $item->size = $data->item->size;
+    $item->grade = $data->item->grade;
 
     // create the product
     $item_number = $item->addItem();

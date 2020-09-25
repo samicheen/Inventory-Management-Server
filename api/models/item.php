@@ -25,7 +25,8 @@ class Item {
                     name,
                     size,
                     grade
-                FROM " . $this->table_name;
+                FROM " . $this->item_table .
+                " ORDER BY name";
         
         // prepare query statement
         $stmt = $this->conn->prepare($query);
@@ -87,23 +88,24 @@ class Item {
         // execute query
         if($stmt->execute()) {
             // returns last autoincrement id and rows affected
-            $item_number = $this->conn->lastInsertId();
-            $affected_rows = $stmt->rowCount();
-            $is_map = true;
-            // If inserted then add into mapping
-            if($affected_rows){
-                $is_map = $this->addMapping($item_number);
-            }
-            if($item_number && $is_map){
-                return $item_number;
-            }
+            // $item_number = $this->conn->lastInsertId();
+            // $affected_rows = $stmt->rowCount();
+            // $is_map = true;
+            // // If inserted or sub item then add into mapping
+            // if($affected_rows || $this->item_id){
+            //     $is_map = $this->addMapping($item_number);
+            // }
+            // if($item_number && $is_map){
+            //     return $item_number;
+            // }
+            return $this->conn->lastInsertId();
         } 
 
         return 0;
     }
 
     // Add item sub_item mapping
-    function addMapping($item_number) {
+    function addMapping($parent_item_id, $item_id) {
         // query to insert record
         $query = "INSERT INTO
         " . $this->map_table . "
@@ -118,13 +120,15 @@ class Item {
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
 
         // bind values
-        if(empty($this->item_id)){
-            $stmt->bindParam(":item_id", $item_number);
-            $stmt->bindParam(":sub_item_id", $n=null, PDO::PARAM_NULL);
-        } else{
-            $stmt->bindParam(":item_id", $this->item_id);
-            $stmt->bindParam(":sub_item_id", $item_number); 
-        }
+        // if(empty($this->item_id)){
+        //     $stmt->bindParam(":item_id", $item_number);
+        //     $stmt->bindParam(":sub_item_id", $n=null, PDO::PARAM_NULL);
+        // } else{
+        //     $stmt->bindParam(":item_id", $this->item_id);
+        //     $stmt->bindParam(":sub_item_id", $item_number); 
+        // }
+        $stmt->bindParam(":item_id", $parent_item_id);
+        $stmt->bindParam(":sub_item_id", $item_id);
 
         // execute query
         if($stmt->execute()) {

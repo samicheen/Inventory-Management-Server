@@ -30,45 +30,41 @@ $add_inventory_response["alerts"] = array();
 // make sure data is not empty
 if(
     !empty($data->item) &&
-    !empty($data->item->name) &&
-    !empty($data->item->size) &&
-    !empty($data->item->grade) &&
+    !empty($data->item->item_id) &&
     !empty($data->quantity) &&
     !empty($data->quantity->value) &&
     !empty($data->quantity->unit) &&
     !empty($data->rate) &&
     !empty($data->amount)
 ){
-    //set item values
-    $item->item_id = $data->item->item_id;
-    $item->name = $data->item->name;
-    $item->size = $data->item->size;
-    $item->grade = $data->item->grade;
-
-    $sub_item_id = $item->addItem();
-
-    $manufacturingUpdated = 1;
+    $success = 1;
 
     // update manufacturing only if it is subitem
-    if (!empty($item->item_id)) {
+    if (!empty($data->item->parent_item_id)) {
+
+        // add mapping
+        $success = $item->addMapping($data->item->parent_item_id, $data->item->item_id);
+
         //set manufaturing values
-        $manufacture->item_id = $data->item->item_id;
+        $manufacture->item_id = $data->item->parent_item_id;
         $manufacture->quantity = $data->quantity->value * -1;
         $manufacture->unit = $data->quantity->unit;
 
-        $manufacturingUpdated = $manufacture->addToManufacturing();
+        $success = $manufacture->addToManufacturing();
     }
 
     // set product property values
-    $inventory->item_id = $sub_item_id;
+    $inventory->item_id = $data->item->item_id;
+    $inventory->parent_item_id = $data->item->parent_item_id;
     $inventory->quantity = $data->quantity->value;
     $inventory->unit = $data->quantity->unit;
     $inventory->rate = $data->rate;
     $inventory->amount = $data->amount;
+    $inventory->timestamp = $data->timestamp;
   
     // create the product
     $inventory_id = $inventory->addInventory();
-    if($sub_item_id && $manufacturingUpdated && $inventory_id){
+    if($success && $inventory_id){
         $add_inventory_response["inventory_id"] = $inventory_id;
         // set response code - 201 created
         http_response_code(201);

@@ -33,49 +33,44 @@ $add_purchase_response["alerts"] = array();
 if(
     !empty($data->invoice_id) &&
     !empty($data->item) &&
-    !empty($data->item->name) &&
-    !empty($data->item->size) &&
-    !empty($data->item->grade) &&
+    !empty($data->item->item_id) &&
     !empty($data->vendor) &&
     !empty($data->vendor->name) &&
     !empty($data->quantity) &&
     !empty($data->quantity->value) &&
     !empty($data->quantity->unit) &&
     !empty($data->rate) &&
-    !empty($data->amount)
+    !empty($data->amount) &&
+    !empty($data->timestamp)
 ){
-    // set item values
-    $item->name = $data->item->name;
-    $item->size = $data->item->size;
-    $item->grade = $data->item->grade;
-
     // set vendor values
     $vendor->name = $data->vendor->name;
     
     // set purchase values
     $purchase->invoice_id = $data->invoice_id;
+    $purchase->item_id = $data->item->item_id;
     $purchase->quantity = $data->quantity->value;
     $purchase->unit = $data->quantity->unit;
     $purchase->rate = $data->rate;
     $purchase->amount = $data->amount;
+    $purchase->timestamp = $data->timestamp;
 
     // create the product
-    $item_number = $item->addItem();
     $vendor_id = $vendor->addVendor();
 
-    $purchase->item_id = $item_number;
     $purchase->vendor_id = $vendor_id;
 
     $purchase_id = $purchase->addPurchase();
 
     // set inventory values
-    $inventory->item_id = $item_number;
+    $inventory->item_id = $data->item->item_id;
     $inventory->quantity = $data->quantity->value;
     $inventory->unit = $data->quantity->unit;
     $inventory->rate = $data->rate;
     $inventory->amount = $data->amount;
+    $inventory->timestamp = $data->timestamp;
 
-    if($item_number && $vendor_id && $purchase_id){
+    if($vendor_id && $purchase_id){
         $inventory_id = $inventory->addInventory();
         if($inventory_id) {
             $add_purchase_response["purchase_id"] = $purchase_id;

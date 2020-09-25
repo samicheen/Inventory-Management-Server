@@ -14,10 +14,10 @@ $db = $database->getConnection();
 // initialize object
 $inventory = new Inventory($db);
 
-$item_id = $_GET['item_id'];
+$parent_item_id = $_GET['parent_item_id'];
 
 // query inventory
-$stmt = $inventory->getInventory($item_id);
+$stmt = $inventory->getInventory($parent_item_id);
 $num = $stmt->rowCount();
   
 // check if more than 0 record found
@@ -44,7 +44,7 @@ if($num>0){
                 "value" => $quantity,
                 "unit" => $unit),
             "amount" => $amount,
-            "timestamp" => $timestamp
+            "timestamp" => $timestamp . ' UTC'
             
         );
   

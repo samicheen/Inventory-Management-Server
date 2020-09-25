@@ -11,6 +11,7 @@ class Inventory {
     // object properties
     public $purchase_id;
     public $item_id;
+    public $parent_item_id;
     public $name;
     public $size;
     public $grade;
@@ -26,7 +27,7 @@ class Inventory {
     }
 
     // Get inventory
-    function getInventory($item_id) {
+    function getInventory($parent_item_id) {
         // select all query
         $query = "SELECT
                     inv.item_id as item_id,
@@ -38,31 +39,33 @@ class Inventory {
                     amount,
                     timestamp
                 FROM (SELECT item_id,
+                             parent_item_id,
                              SUM(quantity) quantity,
                              unit,
                              SUM(amount) amount,
                              MAX(update_timestamp) timestamp 
                       FROM ". $this->inventory_table . "
-                      GROUP BY item_id, unit) inv
+                      GROUP BY item_id, parent_item_id, unit) inv
                 INNER JOIN " . $this->item_table . " i
-                ON inv.item_id = i.item_id
-                INNER JOIN " . $this->map_table . " map";
+                ON inv.item_id = i.item_id";
 
-        if(empty($item_id)) {
-         $query = $query." ON i.item_id = map.item_id WHERE map.sub_item_id is null";
+        if(empty($parent_item_id)) {
+         $query = $query." WHERE parent_item_id is null";
         } else {
          // for sub items
-         $query = $query." ON i.item_id = map.sub_item_id WHERE map.item_id=:item_id";
+         $query = $query." WHERE parent_item_id = :parent_item_id";
         }
+
+        $query = $query." ORDER BY name, size, grade";
 
         // prepare query statement
         $stmt = $this->conn->prepare($query);
 
         // sanitize
-        $item_id = htmlspecialchars(strip_tags($item_id));
+        $parent_item_id = htmlspecialchars(strip_tags($parent_item_id));
 
         // bind values
-        $stmt->bindParam(":item_id", $item_id);
+        $stmt->bindParam(":parent_item_id", $parent_item_id);
         
         // execute query
         $stmt->execute();
@@ -86,29 +89,38 @@ class Inventory {
         " . $this->inventory_table . "
         SET
             item_id=:item_id,
+            parent_item_id=:parent_item_id,
             quantity=:quantity,
             unit=:unit,
             rate=:rate,
             amount=:amount,
-            update_timestamp=sysdate(),
-            timestamp=sysdate()";
+            update_timestamp=:timestamp,
+            timestamp=:timestamp";
 
         // prepare query
         $stmt = $this->conn->prepare($query);
 
         // sanitize
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
+        $this->parent_item_id = htmlspecialchars(strip_tags($this->parent_item_id));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->unit = htmlspecialchars(strip_tags($this->unit));
         $this->rate = htmlspecialchars(strip_tags($this->rate));
         $this->amount = htmlspecialchars(strip_tags($this->amount));
+        $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
         $stmt->bindParam(":item_id", $this->item_id);
+        if (empty($this->parent_item_id)) {
+            $stmt->bindParam(":parent_item_id", $n=null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindParam(":parent_item_id", $this->parent_item_id);
+        }
         $stmt->bindParam(":quantity", $this->quantity);
         $stmt->bindParam(":unit", $this->unit);
         $stmt->bindParam(":rate", $this->rate);
         $stmt->bindParam(":amount", $this->amount);
+        $stmt->bindParam(":timestamp", $this->timestamp);
 
         // execute query
         if($stmt->execute()) {
@@ -143,10 +155,12 @@ class Inventory {
         // sanitize
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
+        //$this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
         $stmt->bindParam(":item_id", $this->item_id);
         $stmt->bindParam(":quantity", $this->quantity);
+        //$stmt->bindParam(":timestamp", $this->timestamp);
 
         // execute query
         if($stmt->execute()) {

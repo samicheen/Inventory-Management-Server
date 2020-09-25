@@ -42,7 +42,7 @@ if($num>0){
             "quantity" => array(
                 "value" => $quantity,
                 "unit" => $unit),
-            "timestamp" => $timestamp
+            "timestamp" => $timestamp . ' UTC'
             
         );
   
