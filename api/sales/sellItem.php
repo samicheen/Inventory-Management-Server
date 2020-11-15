@@ -36,7 +36,8 @@ if (!empty($data->item) &&
     !empty($data->quantity->value) &&
     !empty($data->quantity->unit) &&
     !empty($data->selling_price) &&
-    !empty($data->amount)) {
+    !empty($data->amount) &&
+    !empty($data->timestamp)) {
 
         // set customer values
         $customer->name = $data->customer->name;
@@ -50,16 +51,18 @@ if (!empty($data->item) &&
         $item->unit = $data->quantity->unit;
         $item->selling_price = $data->selling_price;
         $item->amount = $data->amount;
+        $item->timestamp = $data->timestamp;
 
         // set inventory property values
         $inventory->item_id = $data->item->item_id;
-        $inventory->quantity = $data->quantity->value;
+        $inventory->closing_stock = $data->quantity->value;
+        $inventory->update_timestamp = $data->timestamp;
     
         // create the product
         $sale_id = $item->sellItem();
         $inventory_updated = $inventory->updateInventory();
 
-        if($sale_id && $inventory_updated) {
+        if($customer_id && $sale_id && $inventory_updated) {
             $sell_item_response["sale_id"] = $sale_id;
             // set response code - 201 created
             http_response_code(201);

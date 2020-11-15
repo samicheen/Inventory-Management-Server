@@ -40,10 +40,15 @@ if($num>0){
                 "name" => $name,
                 "size" => $size,
                 "grade" => $grade),
-            "quantity" => array(
-                "value" => $quantity,
+            "opening_stock" => array(
+                "value" => $opening_stock,
                 "unit" => $unit),
-            "amount" => $amount,
+            "closing_stock" => array(
+                "value" => $closing_stock,
+                "unit" => $unit
+            ),
+            "opening_amount" => $opening_amount,
+            "closing_amount" => $closing_amount,
             "timestamp" => $timestamp . ' UTC'
             
         );
@@ -51,7 +56,7 @@ if($num>0){
         array_push($inventory_arr["inventory"], $inventory_item);
     }
 
-    $inventory_arr["total_amount"] = $inventory->getTotalAmount();
+    $inventory_arr["total"] = $inventory->getTotalAmounts();
   
     // set response code - 200 OK
     http_response_code(200);

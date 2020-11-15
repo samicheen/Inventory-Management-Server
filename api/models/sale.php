@@ -46,7 +46,8 @@ class Sale {
                 " INNER JOIN " . $this->item_table .
                 " ON " . $this->sales_table . ".item_id = " . $this->item_table . ".item_id
                 INNER JOIN " . $this->customer_table .
-                " ON " . $this->sales_table . ".customer_id = " . $this->customer_table . ".customer_id";
+                " ON " . $this->sales_table . ".customer_id = " . $this->customer_table . ".customer_id
+                ORDER BY item.name, grade, size, timestamp";
         // prepare query statement
         $stmt = $this->conn->prepare($query);
         // execute query
@@ -76,7 +77,7 @@ class Sale {
            unit=:unit,
            selling_price=:selling_price,
            amount=:amount,
-           timestamp=sysdate()";
+           timestamp=:timestamp";
        // prepare query
        $stmt = $this->conn->prepare($query);
 
@@ -87,6 +88,7 @@ class Sale {
        $this->unit = htmlspecialchars(strip_tags($this->unit));
        $this->selling_price = htmlspecialchars(strip_tags($this->selling_price));
        $this->amount = htmlspecialchars(strip_tags($this->amount));
+       $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
        // bind values
        $stmt->bindParam(":item_id", $this->item_id);
@@ -95,6 +97,7 @@ class Sale {
        $stmt->bindParam(":unit", $this->unit);
        $stmt->bindParam(":selling_price", $this->selling_price);
        $stmt->bindParam(":amount", $this->amount);
+       $stmt->bindParam(":timestamp", $this->timestamp);
 
        // execute query
        if($stmt->execute()) {

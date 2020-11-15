@@ -29,6 +29,7 @@ class Manufacture {
                     name,
                     size,
                     grade,
+                    booked_quantity,
                     quantity,
                     unit,
                     timestamp
@@ -49,11 +50,13 @@ class Manufacture {
         $query = "INSERT INTO
         " . $this->manufacture_table . "
         SET item_id=:item_id, 
+            booked_quantity=:booked_quantity,
             quantity=:quantity,
             unit=:unit,
-            timestamp=sysdate()
+            timestamp=:timestamp
         ON DUPLICATE KEY UPDATE
         manufacture_id=LAST_INSERT_ID(manufacture_id),
+        booked_quantity=booked_quantity+VALUES(booked_quantity),
         quantity=quantity+VALUES(quantity),
         timestamp=VALUES(timestamp)"
         ;
@@ -62,13 +65,17 @@ class Manufacture {
 
         // sanitize
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
+        $this->booked_quantity = htmlspecialchars(strip_tags($this->booked_quantity));
         $this->quantity = htmlspecialchars(strip_tags($this->quantity));
         $this->unit = htmlspecialchars(strip_tags($this->unit));
+        $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
         $stmt->bindParam(":item_id", $this->item_id);
+        $stmt->bindParam(":booked_quantity", $this->booked_quantity);
         $stmt->bindParam(":quantity", $this->quantity);
         $stmt->bindParam(":unit", $this->unit);
+        $stmt->bindParam(":timestamp", $this->timestamp);
 
         // execute query
         if($stmt->execute()) {

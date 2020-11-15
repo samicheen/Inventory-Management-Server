@@ -64,10 +64,10 @@ if(
 
     // set inventory values
     $inventory->item_id = $data->item->item_id;
-    $inventory->quantity = $data->quantity->value;
+    $inventory->closing_stock = $data->quantity->value;
     $inventory->unit = $data->quantity->unit;
     $inventory->rate = $data->rate;
-    $inventory->amount = $data->amount;
+    $inventory->closing_amount = $data->amount;
     $inventory->timestamp = $data->timestamp;
 
     if($vendor_id && $purchase_id){

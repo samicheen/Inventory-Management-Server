@@ -31,15 +31,19 @@ if(
     !empty($data->item->item_id) &&
     !empty($data->quantity) &&
     !empty($data->quantity->value) &&
-    !empty($data->quantity->unit)
+    !empty($data->quantity->unit) &&
+    !empty($data->timestamp)
 ){
     // set product property values
     $item->item_id = $data->item->item_id;
+    $item->booked_quantity = $data->quantity->value;
     $item->quantity = $data->quantity->value;
     $item->unit = $data->quantity->unit;
+    $item->timestamp = $data->timestamp;
 
     $inventory->item_id = $data->item->item_id;
-    $inventory->quantity = $data->quantity->value;
+    $inventory->closing_stock = $data->quantity->value;
+    $inventory->update_timestamp = $data->timestamp;
 
     $inventory_updated = $inventory->updateInventory();
 

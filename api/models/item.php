@@ -49,8 +49,6 @@ class Item {
         ON b.item_id = map.sub_item_id
         WHERE a.item_id = ?";
 
-         print($query);
-
         // prepare query statement
         $stmt = $this->conn->prepare($query);
 

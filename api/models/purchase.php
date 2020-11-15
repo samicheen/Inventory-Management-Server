@@ -49,7 +49,7 @@ class Purchase {
                 " ON purchase.item_id = item.item_id
                 INNER JOIN " . $this->vendor_table .
                 " ON purchase.vendor_id = vendor.vendor_id
-                ORDER BY item_name, size, grade";
+                ORDER BY item_name, size, grade, timestamp";
         // prepare query statement
         $stmt = $this->conn->prepare($query);
         // execute query

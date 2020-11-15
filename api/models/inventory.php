@@ -15,9 +15,11 @@ class Inventory {
     public $name;
     public $size;
     public $grade;
-    public $quantity;
+    public $opening_stock;
+    public $closing_stock;
     public $unit;
-    public $amount;
+    public $opening_amount;
+    public $closing_amount;
     public $update_timestamp;
     public $timestamp;
   
@@ -34,15 +36,19 @@ class Inventory {
                     name,
                     size,
                     grade,
-                    quantity,
+                    opening_stock,
+                    closing_stock,
                     unit,
-                    amount,
+                    opening_amount,
+                    closing_amount,
                     timestamp
                 FROM (SELECT item_id,
                              parent_item_id,
-                             SUM(quantity) quantity,
+                             SUM(opening_stock) opening_stock,
+                             SUM(closing_stock) closing_stock,
                              unit,
-                             SUM(amount) amount,
+                             SUM(opening_amount) opening_amount,
+                             SUM(closing_amount) closing_amount,
                              MAX(update_timestamp) timestamp 
                       FROM ". $this->inventory_table . "
                       GROUP BY item_id, parent_item_id, unit) inv
@@ -56,7 +62,7 @@ class Inventory {
          $query = $query." WHERE parent_item_id = :parent_item_id";
         }
 
-        $query = $query." ORDER BY name, size, grade";
+        $query = $query." ORDER BY name, size, grade, timestamp";
 
         // prepare query statement
         $stmt = $this->conn->prepare($query);
@@ -73,13 +79,15 @@ class Inventory {
     }
 
     // Get total amount
-    function getTotalAmount() {
-        $total_query = "SELECT SUM(amount) total_amount
+    function getTotalAmounts() {
+        $total_query = "SELECT SUM(opening_amount) opening_amount,
+                               SUM(closing_amount) closing_amount
                         FROM ". $this->inventory_table;
         $total_stmt = $this->conn->prepare($total_query); 
         $total_stmt->execute();
         $total = $total_stmt->fetch();
-        return $total["total_amount"];
+        return array("opening_amount" => $total["opening_amount"], 
+        "closing_amount" => $total["closing_amount"]);
     }
 
     // Add inventory
@@ -90,10 +98,12 @@ class Inventory {
         SET
             item_id=:item_id,
             parent_item_id=:parent_item_id,
-            quantity=:quantity,
+            opening_stock=:opening_stock,
+            closing_stock=:closing_stock,
             unit=:unit,
             rate=:rate,
-            amount=:amount,
+            opening_amount=:opening_amount,
+            closing_amount=:closing_amount,
             update_timestamp=:timestamp,
             timestamp=:timestamp";
 
@@ -103,10 +113,12 @@ class Inventory {
         // sanitize
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
         $this->parent_item_id = htmlspecialchars(strip_tags($this->parent_item_id));
-        $this->quantity = htmlspecialchars(strip_tags($this->quantity));
+        $this->opening_stock = htmlspecialchars(strip_tags($this->opening_stock));
+        $this->closing_stock = htmlspecialchars(strip_tags($this->closing_stock));
         $this->unit = htmlspecialchars(strip_tags($this->unit));
         $this->rate = htmlspecialchars(strip_tags($this->rate));
-        $this->amount = htmlspecialchars(strip_tags($this->amount));
+        $this->opening_amount = htmlspecialchars(strip_tags($this->opening_amount));
+        $this->closing_amount = htmlspecialchars(strip_tags($this->closing_amount));
         $this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
@@ -116,10 +128,12 @@ class Inventory {
         } else {
             $stmt->bindParam(":parent_item_id", $this->parent_item_id);
         }
-        $stmt->bindParam(":quantity", $this->quantity);
+        $stmt->bindParam(":opening_stock", $this->opening_stock);
+        $stmt->bindParam(":closing_stock", $this->closing_stock);
         $stmt->bindParam(":unit", $this->unit);
         $stmt->bindParam(":rate", $this->rate);
-        $stmt->bindParam(":amount", $this->amount);
+        $stmt->bindParam(":opening_amount", $this->opening_amount);
+        $stmt->bindParam(":closing_amount", $this->closing_amount);
         $stmt->bindParam(":timestamp", $this->timestamp);
 
         // execute query
@@ -138,15 +152,15 @@ class Inventory {
         inner join (
             select 
                 i.*, 
-                sum(quantity) over(partition by item_id order by timestamp) sum_quantity
+                sum(closing_stock) over(partition by item_id order by timestamp) sum_closing_stock
             from " . $this->inventory_table . " i
         ) n
             on  n.item_id = i.item_id
             and n.timestamp = i.timestamp
-            and n.sum_quantity - i.quantity < :quantity
-        set i.quantity = greatest(n.sum_quantity - :quantity, 0),
-        i.amount = greatest(n.sum_quantity - :quantity, 0) * i.rate,
-        i.update_timestamp = sysdate()
+            and n.sum_closing_stock - i.closing_stock < :quantity
+        set i.closing_stock = greatest(n.sum_closing_stock - :quantity, 0),
+        i.closing_amount = greatest(n.sum_closing_stock - :quantity, 0) * i.rate,
+        i.update_timestamp = :update_timestamp
         where i.item_id = :item_id";
 
         // prepare query
@@ -154,13 +168,13 @@ class Inventory {
 
         // sanitize
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
-        $this->quantity = htmlspecialchars(strip_tags($this->quantity));
+        $this->quantity = htmlspecialchars(strip_tags($this->closing_stock));
         //$this->timestamp = htmlspecialchars(strip_tags($this->timestamp));
 
         // bind values
         $stmt->bindParam(":item_id", $this->item_id);
-        $stmt->bindParam(":quantity", $this->quantity);
-        //$stmt->bindParam(":timestamp", $this->timestamp);
+        $stmt->bindParam(":quantity", $this->closing_stock);
+        $stmt->bindParam(":update_timestamp", $this->update_timestamp);
 
         // execute query
         if($stmt->execute()) {

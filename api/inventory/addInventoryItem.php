@@ -31,11 +31,12 @@ $add_inventory_response["alerts"] = array();
 if(
     !empty($data->item) &&
     !empty($data->item->item_id) &&
-    !empty($data->quantity) &&
-    !empty($data->quantity->value) &&
-    !empty($data->quantity->unit) &&
+    !empty($data->closing_stock) &&
+    !empty($data->closing_stock->value) &&
+    !empty($data->closing_stock->unit) &&
     !empty($data->rate) &&
-    !empty($data->amount)
+    !empty($data->closing_amount) &&
+    !empty($data->timestamp)
 ){
     $success = 1;
 
@@ -47,8 +48,9 @@ if(
 
         //set manufaturing values
         $manufacture->item_id = $data->item->parent_item_id;
-        $manufacture->quantity = $data->quantity->value * -1;
+        $manufacture->quantity = $data->closing_stock->value * -1;
         $manufacture->unit = $data->quantity->unit;
+        $manufacture->timestamp = $data->timestamp;
 
         $success = $manufacture->addToManufacturing();
     }
@@ -56,10 +58,12 @@ if(
     // set product property values
     $inventory->item_id = $data->item->item_id;
     $inventory->parent_item_id = $data->item->parent_item_id;
-    $inventory->quantity = $data->quantity->value;
-    $inventory->unit = $data->quantity->unit;
+    $inventory->opening_stock = $data->opening_stock->value;
+    $inventory->closing_stock = $data->closing_stock->value;
+    $inventory->unit = $data->closing_stock->unit;
     $inventory->rate = $data->rate;
-    $inventory->amount = $data->amount;
+    $inventory->opening_amount = $data->opening_amount;
+    $inventory->closing_amount = $data->closing_amount;
     $inventory->timestamp = $data->timestamp;
   
     // create the product

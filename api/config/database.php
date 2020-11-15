@@ -1,10 +1,6 @@
 <?php
 class Database{
-  
     private $host = "194.59.164.106:3306";
-    private $db_name = "u447373500_vinayakashot";
-    private $username = "u447373500_vinayakashot";
-    private $password = "SAM#yash27";
     public $conn;
   
     // get the database connection
@@ -13,7 +9,9 @@ class Database{
         $this->conn = null;
   
         try{
-            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name, $this->username, $this->password);
+            $config = parse_ini_file('../../db.ini');
+
+            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $config['db_name'], $config['username'], $config['password']);
             $this->conn->exec("set names utf8");
         }catch(PDOException $exception){
             echo "Connection error: " . $exception->getMessage();
