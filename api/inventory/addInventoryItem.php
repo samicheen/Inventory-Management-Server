@@ -17,7 +17,6 @@ $database = new Database();
 $db = $database->getConnection();
 
 // initialize object
-$item = new Item($db);
 $manufacture = new Manufacture($db);
 $inventory = new Inventory($db);
   
@@ -44,7 +43,7 @@ if(
     if (!empty($data->item->parent_item_id)) {
 
         // add mapping
-        $success = $item->addMapping($data->item->parent_item_id, $data->item->item_id);
+        //$success = $item->addMapping($data->item->parent_item_id, $data->item->item_id);
 
         //set manufaturing values
         $manufacture->item_id = $data->item->parent_item_id;
@@ -58,6 +57,7 @@ if(
     // set product property values
     $inventory->item_id = $data->item->item_id;
     $inventory->parent_item_id = $data->item->parent_item_id;
+    $inventory->initial_stock = $data->closing_stock->value;
     $inventory->opening_stock = $data->opening_stock->value;
     $inventory->closing_stock = $data->closing_stock->value;
     $inventory->unit = $data->closing_stock->unit;

@@ -8,6 +8,7 @@ class Sale {
     private $sales_table = "sales";
   
     // object properties
+    public $invoice_id;
     public $sale_id;
     public $item_id;
     public $item_name;
@@ -31,6 +32,7 @@ class Sale {
         // select all query
         $query = "SELECT
                     sale_id,
+                    invoice_id,
                     item.item_id as item_id,
                     item.name as item_name,
                     size,
@@ -72,6 +74,7 @@ class Sale {
        " . $this->sales_table . "
        SET
            item_id=:item_id,
+           invoice_id=:invoice_id,
            customer_id=:customer_id,
            quantity=:quantity,
            unit=:unit,
@@ -83,6 +86,7 @@ class Sale {
 
        // sanitize
        $this->item_id = htmlspecialchars(strip_tags($this->item_id));
+       $this->invoice_id = htmlspecialchars(strip_tags($this->invoice_id));
        $this->customer_id = htmlspecialchars(strip_tags($this->customer_id));
        $this->quantity = htmlspecialchars(strip_tags($this->quantity));
        $this->unit = htmlspecialchars(strip_tags($this->unit));
@@ -92,6 +96,7 @@ class Sale {
 
        // bind values
        $stmt->bindParam(":item_id", $this->item_id);
+       $stmt->bindParam(":invoice_id", $this->invoice_id);
        $stmt->bindParam(":customer_id", $this->customer_id);
        $stmt->bindParam(":quantity", $this->quantity);
        $stmt->bindParam(":unit", $this->unit);

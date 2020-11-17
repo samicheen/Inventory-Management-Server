@@ -34,6 +34,7 @@ if($num>0){
   
         $sale_item=array(
             "sale_id" => $sale_id,
+            "invoice_id" => $invoice_id,
             "item" => array(
                 "id" => $item_id,
                 "name" => $item_name,

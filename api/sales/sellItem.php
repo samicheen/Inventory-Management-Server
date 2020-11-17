@@ -28,7 +28,8 @@ $sell_item_response["sale_id"] = '';
 $sell_item_response["alerts"] = array();
 
 // make sure data is not empty
-if (!empty($data->item) &&
+if (!empty($data->invoice_id) &&
+    !empty($data->item) &&
     !empty($data->item->item_id) &&
     !empty($data->customer) &&
     !empty($data->customer->name) &&
@@ -45,6 +46,7 @@ if (!empty($data->item) &&
         $customer_id = $customer->addCustomer();
 
         // set sales property values
+        $item->invoice_id = $data->invoice_id;
         $item->item_id = $data->item->item_id;
         $item->customer_id = $customer_id;
         $item->quantity = $data->quantity->value;

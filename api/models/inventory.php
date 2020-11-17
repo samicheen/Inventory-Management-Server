@@ -4,7 +4,6 @@ class Inventory {
     // database connection and table name
     private $conn;
     private $item_table = "item";
-    private $map_table = "item_sub_item_map";
     private $inventory_table = "inventory";
     private $purchase_table = "purchase";
   
@@ -15,6 +14,7 @@ class Inventory {
     public $name;
     public $size;
     public $grade;
+    public $initial_stock;
     public $opening_stock;
     public $closing_stock;
     public $unit;
@@ -29,50 +29,47 @@ class Inventory {
     }
 
     // Get inventory
-    function getInventory($parent_item_id) {
+    function getInventory($retrieve_sub_items, $parent_item_id) {
         // select all query
         $query = "SELECT
                     inv.item_id as item_id,
                     name,
                     size,
                     grade,
-                    opening_stock,
-                    closing_stock,
+                    SUM(initial_stock) initial_stock,
+                    SUM(opening_stock) opening_stock,
+                    SUM(closing_stock) closing_stock,
                     unit,
-                    opening_amount,
-                    closing_amount,
-                    timestamp
-                FROM (SELECT item_id,
-                             parent_item_id,
-                             SUM(opening_stock) opening_stock,
-                             SUM(closing_stock) closing_stock,
-                             unit,
-                             SUM(opening_amount) opening_amount,
-                             SUM(closing_amount) closing_amount,
-                             MAX(update_timestamp) timestamp 
-                      FROM ". $this->inventory_table . "
-                      GROUP BY item_id, parent_item_id, unit) inv
+                    SUM(opening_amount) opening_amount,
+                    SUM(closing_amount) closing_amount,
+                    MAX(update_timestamp) timestamp
+                FROM inventory inv
                 INNER JOIN " . $this->item_table . " i
                 ON inv.item_id = i.item_id";
 
-        if(empty($parent_item_id)) {
-         $query = $query." WHERE parent_item_id is null";
+        if(!empty($parent_item_id)) {
+          // for sub items when parent is available
+          $query = $query . " WHERE parent_item_id = :parent_item_id
+           GROUP BY inv.item_id, parent_item_id, name, size, grade, unit";
         } else {
-         // for sub items
-         $query = $query." WHERE parent_item_id = :parent_item_id";
+          $query = $query . " WHERE i.is_sub_item = :retrieve_sub_items
+           GROUP BY inv.item_id, name, size, grade, unit";
         }
 
-        $query = $query." ORDER BY name, size, grade, timestamp";
+        $query = $query . " ORDER BY name, size, grade, timestamp";
 
         // prepare query statement
         $stmt = $this->conn->prepare($query);
 
-        // sanitize
-        $parent_item_id = htmlspecialchars(strip_tags($parent_item_id));
+        // sanitize and bind values
+        if(!empty($parent_item_id)) {
+            $parent_item_id = htmlspecialchars(strip_tags($parent_item_id));
+            $stmt->bindParam(":parent_item_id", $parent_item_id);
+        } else {
+            $retrieve_sub_items = htmlspecialchars(strip_tags($retrieve_sub_items));
+            $stmt->bindParam(":retrieve_sub_items", $retrieve_sub_items, PDO::PARAM_INT);
+        }
 
-        // bind values
-        $stmt->bindParam(":parent_item_id", $parent_item_id);
-        
         // execute query
         $stmt->execute();
         return $stmt;
@@ -98,6 +95,7 @@ class Inventory {
         SET
             item_id=:item_id,
             parent_item_id=:parent_item_id,
+            initial_stock=:closing_stock,
             opening_stock=:opening_stock,
             closing_stock=:closing_stock,
             unit=:unit,
@@ -113,6 +111,7 @@ class Inventory {
         // sanitize
         $this->item_id = htmlspecialchars(strip_tags($this->item_id));
         $this->parent_item_id = htmlspecialchars(strip_tags($this->parent_item_id));
+        $this->initial_stock = htmlspecialchars(strip_tags($this->closing_stock));
         $this->opening_stock = htmlspecialchars(strip_tags($this->opening_stock));
         $this->closing_stock = htmlspecialchars(strip_tags($this->closing_stock));
         $this->unit = htmlspecialchars(strip_tags($this->unit));
@@ -128,6 +127,7 @@ class Inventory {
         } else {
             $stmt->bindParam(":parent_item_id", $this->parent_item_id);
         }
+        $stmt->bindParam(":initial_stock", $this->closing_stock);
         $stmt->bindParam(":opening_stock", $this->opening_stock);
         $stmt->bindParam(":closing_stock", $this->closing_stock);
         $stmt->bindParam(":unit", $this->unit);

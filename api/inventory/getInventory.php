@@ -14,10 +14,11 @@ $db = $database->getConnection();
 // initialize object
 $inventory = new Inventory($db);
 
+$retrieve_sub_items = $_GET['retrieve_sub_items'];
 $parent_item_id = $_GET['parent_item_id'];
 
 // query inventory
-$stmt = $inventory->getInventory($parent_item_id);
+$stmt = $inventory->getInventory($retrieve_sub_items, $parent_item_id);
 $num = $stmt->rowCount();
   
 // check if more than 0 record found
@@ -40,6 +41,9 @@ if($num>0){
                 "name" => $name,
                 "size" => $size,
                 "grade" => $grade),
+            "initial_stock" => array(
+                "value" => $initial_stock,
+                "unit" => $unit),
             "opening_stock" => array(
                 "value" => $opening_stock,
                 "unit" => $unit),

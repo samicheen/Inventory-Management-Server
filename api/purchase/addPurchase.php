@@ -64,6 +64,7 @@ if(
 
     // set inventory values
     $inventory->item_id = $data->item->item_id;
+    $inventory->initial_stock = $data->quantity->value;
     $inventory->closing_stock = $data->quantity->value;
     $inventory->unit = $data->quantity->unit;
     $inventory->rate = $data->rate;

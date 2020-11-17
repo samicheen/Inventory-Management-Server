@@ -33,6 +33,7 @@ if(
     $item->name = $data->item->name;
     $item->size = $data->item->size;
     $item->grade = $data->item->grade;
+    $item->is_sub_item = $data->item->is_sub_item;
 
     // create the product
     $item_number = $item->addItem();
